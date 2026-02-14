@@ -6,5 +6,4 @@ project architecture, best practices
 
 | Skill | What it teaches |
 |-------|-----------------|
-| bf-lamp | Can manage the Docker LAMP stack (WIP)|
-
+| bf-lamp | Can manage the Docker LAMP stack |
