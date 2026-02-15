@@ -1,394 +1,228 @@
 ---
-name: bf-lamp
-description: Dockerised LAMP stack (Linux, Apache, MariaDB, PHP 8.3) for PHP web development. Includes self-signed SSL, MailHog for email testing, and NodeJs 18. Use when setting up PHP development environments, testing PHP applications, or working with Apache/MySQL/PHP projects.
-license: MIT
-metadata:
-  author: boneframework
-  version: "1.0"
-  repository: https://github.com/boneframework/lamp
-compatibility: Requires Docker and Docker Compose
+name: "bf-lamp"
+description: "Informs Agent Zero that it's running in a Bone Framework Docker container as part of a docker-compose LAMP stack with php, node, and mariadb services. Use when executing PHP (composer), Node (npm), or MariaDB (mysql) commands."
+version: "1.0.0"
+author: "Agent Zero User"
+tags: ["docker", "lamp", "php", "node", "mariadb", "composer", "mysql", "bone"]
+trigger_patterns:
+  - "lamp"
+  - "composer"
+  - "php container"
+  - "node container"
+  - "mariadb"
+  - "mysql container"
+  - "docker compose"
+  - "bone framework"
 ---
 
-# LAMP Stack Skill
+# LAMP Project Docker Environment
 
-A Dockerised LAMP (Linux, Apache, MariaDB, PHP) stack for PHP web development with modern tooling.
+## Environment Overview
 
-## Overview
+You (Agent Zero) are running inside a Docker container that is part of a docker-compose LAMP stack. This stack includes the following sibling containers:
 
-This skill provides a complete Docker-based development environment including:
+- **php** - PHP runtime with Apache (for running PHP applications and composer)
+- **node** - Node.js runtime (for running npm and node commands)
+- **mariadb** - MariaDB database server (for MySQL operations)
 
-- **Linux**: Docker-based Linux server
-- **Apache**: Web server with self-signed SSL certificate
-- **MariaDB**: MySQL-compatible database server
-- **PHP 8.3**: Latest PHP with common modules
-- **MailHog**: Email testing (SMTP on port 1025, web UI on port 8025)
-- **NodeJs 18**: For frontend tooling
+## Important: You Are Inside a Container
 
-## When to Use This Skill
+Since you are running inside a container, you **cannot** directly execute commands like `composer`, `npm`, or `mysql` in your local environment. Instead, you must use the Docker socket to execute commands in the appropriate sibling containers.
 
-Use this skill when you need to:
+## How to Execute Commands in Sibling Containers
 
-- Set up a PHP development environment
-- Test PHP web applications locally
-- Develop with Apache, MySQL/MariaDB, and PHP
-- Test email functionality without sending real emails
-- Work on projects requiring both PHP and Node.js
-- Create isolated development environments with SSL
+### General Pattern
 
-The instructions below are for the host machine. You are running inside an agent zero container, so use `/var/run/docker.sock` to access the services.
-
-## Initial Setup
-
-### 1. Configure Domain Name
-
-The default domain is `boneframework.docker`. Change it to your preferred domain:
+To execute a command in a sibling container, use this pattern:
 
 ```bash
-bin/setdomain dev.mycoolsite.com
+docker -H unix:///var/run/docker.sock exec [container-name] [command]
 ```
 
-### 2. SSL Certificate
+**Key Components:**
+- `-H unix:///var/run/docker.sock` - Connects to the Docker daemon via the socket
+- `exec` - Executes a command in a running container
+- `[container-name]` - The name of the target container
+- `[command]` - The command to execute
 
-A self-signed SSL certificate is automatically generated. To use your own certificate:
+### Finding Container Names
 
-1. Copy your certificate to `build/certificates/server.crt`
-2. Copy your private key to `build/certificates/server.key`
-3. Run `bin/rebuild` to apply changes
-
-### 3. Add Your Code
-
-Place your PHP application in the `code` directory. Apache serves from `code/public/index.php` by default.
-
-- Delete the placeholder `public/index.php`
-- Add your project files or create a symlink to your existing project
-
-### 4. Configure Virtual Host
-
-Edit your system's hosts file to access the site by domain name:
-
-**Linux/Mac**: `/etc/hosts`
-**Windows**: `C:\Windows\system32\drivers\etc\hosts`
-
-Add this line:
-```
-127.0.0.1 boneframework.docker
-```
-(Replace with your custom domain if you changed it)
-
-## Starting and Stopping
-
-### Start the Server
+If you need to verify container names, list all running containers:
 
 ```bash
-bin/start
+docker -H unix:///var/run/docker.sock ps
 ```
 
-This starts all services and displays logs. Keep this terminal open while working.
+Container names typically follow the pattern: `[project-name]-[service-name]-[number]`
 
-Access your site at:
-- `https://localhost`
-- `https://boneframework.docker` (or your custom domain)
+For example:
+- `lamp-php-1`
+- `lamp-node-1`
+- `lamp-mariadb-1`
 
-### Stop the Server
+## Service-Specific Commands
 
-Press `CTRL-C` in the terminal running the server, then:
+### PHP Container (composer, php, bone)
+**Running bone:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-php-1 bone --help
+docker -H unix:///var/run/docker.sock exec lamp-php-1 bone migrant:migrate
+docker -H unix:///var/run/docker.sock exec lamp-php-1 bone assets:deploy
+```
+**Running Composer:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-php-1 composer install
+docker -H unix:///var/run/docker.sock exec lamp-php-1 composer require vendor/package
+docker -H unix:///var/run/docker.sock exec lamp-php-1 composer update
+```
+
+**Running PHP:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-php-1 php -v
+docker -H unix:///var/run/docker.sock exec lamp-php-1 php script.php
+```
+
+**Interactive Shell:**
+```bash
+docker -H unix:///var/run/docker.sock exec -it lamp-php-1 bash
+```
+
+### Node Container (npm, node)
+
+**Running NPM:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-node-1 npm install
+docker -H unix:///var/run/docker.sock exec lamp-node-1 npm run build
+docker -H unix:///var/run/docker.sock exec lamp-node-1 npm install package-name
+```
+
+**Running Node:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-node-1 node -v
+docker -H unix:///var/run/docker.sock exec lamp-node-1 node script.js
+```
+
+**Interactive Shell:**
+```bash
+docker -H unix:///var/run/docker.sock exec -it lamp-node-1 bash
+```
+
+### MariaDB Container (mysql)
+
+**Running MySQL Client:**
+```bash
+docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysql -u root -p
+docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysql -u root -ppassword -e "SHOW DATABASES;"
+```
+
+**Database Operations:**
+```bash
+# Create database
+docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysql -u root -ppassword -e "CREATE DATABASE mydb;"
+
+# Import SQL file
+docker -H unix:///var/run/docker.sock exec -i lamp-mariadb-1 mysql -u root -ppassword mydb < dump.sql
+
+# Export database
+docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysqldump -u root -ppassword mydb > backup.sql
+```
+
+**Interactive Shell:**
+```bash
+docker -H unix:///var/run/docker.sock exec -it lamp-mariadb-1 bash
+```
+
+## Working with Files
+
+### Copying Files to Containers
 
 ```bash
-bin/stop
+docker -H unix:///var/run/docker.sock cp /local/path/file.txt lamp-php-1:/container/path/
 ```
 
-## Running Commands
-
-### Execute Commands in PHP Container
-
-Run commands like Composer, PHP CLI, etc.:
+### Copying Files from Containers
 
 ```bash
-bin/run composer install
-bin/run bone router:list
-bin/run composer require vendor/package
+docker -H unix:///var/run/docker.sock cp lamp-php-1:/container/path/file.txt /local/path/
 ```
 
-### Execute Node.js Commands
-
-Run npm or npx commands:
-
-```bash
-bin/runnode npm ci --save-all
-bin/runnode npx webpack
-bin/runnode npm run build
-```
-
-### Interactive Terminal Access
-
-Enter a container for interactive work:
-
-```bash
-bin/terminal [service]
-```
-
-Available services: `php`, `mariadb`, `node`
-
-Example:
-```bash
-bin/terminal php
-# Now you're inside the PHP container
-```
-
-### Restart Services
-
-Restart individual services:
-
-```bash
-bin/restart [service]
-```
-
-### Rebuild Configuration
-
-After changing Docker configuration:
-
-```bash
-bin/rebuild
-```
-
-### Initial Setup Script
-
-Run custom initialization tasks (edit `bin/init` first):
-
-```bash
-bin/init
-```
-
-Typical uses:
-- Run `composer install`
-- Execute database migrations 
-- Populate fixtures
-- Warm up caches
-
-## Database Configuration
-
-### Connection Settings
-
-When connecting from PHP code:
-
-- **Host**: `mariadb` (NOT `127.0.0.1` or `localhost`)
-- **Port**: `3306`
-- **Username**: Check `.env` file
-- **Password**: Check `.env` file
-- **Database**: Check `.env` file
-
-### External Database Access
-
-To connect from your host machine (e.g., using a GUI tool):
-
-- **Host**: `localhost` or `127.0.0.1`
-- **Port**: Check `docker-compose.yml` for mapped port
-
-## Email Testing with MailHog
-
-MailHog captures all outgoing emails for testing:
-
-### SMTP Configuration
-
-- **Host**: `mailhog`
-- **Port**: `1025`
-- **No authentication required**
-
-### View Captured Emails
-
-Access the MailHog web interface:
-```
-http://boneframework.docker:8025
-```
-
-All emails sent by your application appear here instead of being delivered.
-
-## File Structure
-
-```
-lamp/
-├── bin/                    # Management scripts
-│   ├── start              # Start the stack
-│   ├── stop               # Stop the stack
-│   ├── run                # Run commands in PHP container
-│   ├── runnode            # Run commands in Node container
-│   ├── terminal           # Interactive shell access
-│   ├── restart            # Restart services
-│   ├── rebuild            # Rebuild containers
-│   ├── setdomain          # Change domain name
-│   └── init               # Custom initialization script
-├── build/                 # Docker build files
-│   └── certificates/      # SSL certificates
-├── code/                  # Your application code
-│   └── public/           # Web root (Apache serves from here)
-├── .env                   # Environment variables
-├── docker-compose.yml     # Docker services configuration
-└── README.md
-```
-
-## Customization
-
-### Environment Variables
-
-Edit `.env` file to configure:
-- Database credentials
-- PHP settings
-- Port mappings
-- Other service configurations
-
-### Docker Configuration
-
-Modify `docker-compose.yml` to:
-- Change service versions
-- Add new services
-- Modify port mappings
-- Adjust resource limits
-
-After changes, run `bin/rebuild`.
-
-### PHP Configuration
-
-PHP and Apache Dockerfiles are in the `build/` directory. Customize as needed.
-
-### SMTP Configuration
-
-The stack uses MailHog via `ssmtp.conf` configuration. All emails are automatically captured.
-
-## Common Tasks
-
-### Install PHP Dependencies
-
-```bash
-bin/run composer install
-```
-### Create fresh database from schema
-```bash
-bin/run bone migrant:create
-```
-
-### Drop the database  schema
-```bash
-bin/run bone migrant:drop --force
-```
-
-### Run Database Migrations
-```bash
-bin/run bone migrant:migrate
-```
-
-### Populate DB with vendor package fixtures
-```bash
-bin/run bone migrant:vendor-fixtures
-```
-
-### Populate DB with fixtures
-```bash
-bin/run bone migrant:fixtures
-```
-
-### Create a new migration
-```bash
-bin/run bone migrant:diff
-```
-
-### Install Node Dependencies
-
-```bash
-bin/runnode npm install
-```
-
-### Build Frontend Assets
-
-```bash
-bin/runnode npm run build
-```
-
-### Clear Application Cache
-
-```bash
-bin/run php artisan cache:clear  # Laravel
-bin/run php bin/console cache:clear  # Symfony
-```
-
-### Access Database CLI
-
-```bash
-bin/terminal mariadb
-mysql -u root -p
-```
-
-## Productivity Tips
-
-### Simplify Command Execution
-
-Add to your `~/.bashrc` or `~/.zshrc`:
-
-```bash
-export PATH=$PATH:bin:vendor/bin
-```
-
-This allows running commands without prefixes:
-
-```bash
-# Before
-bin/start
-vendor/bin/phpunit
-
-# After
-start
-phpunit
-```
-
-### File Naming
-
-Avoid spaces in filenames when working in the `code/` directory for better compatibility.
+## Common Workflows
+
+### Setting Up a New PHP Project
+
+1. Create composer.json in your project directory
+2. Install dependencies:
+   ```bash
+   docker -H unix:///var/run/docker.sock exec lamp-php-1 composer install
+   ```
+
+### Building Frontend Assets
+
+1. Ensure package.json exists
+2. Install dependencies:
+   ```bash
+   docker -H unix:///var/run/docker.sock exec lamp-node-1 npm install
+   ```
+3. Build assets:
+   ```bash
+   docker -H unix:///var/run/docker.sock exec lamp-node-1 npm run build
+   ```
+
+### Database Setup
+
+1. Create database:
+   ```bash
+   docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysql -u root -ppassword -e "CREATE DATABASE myapp;"
+   ```
+2. Import schema:
+   ```bash
+   docker -H unix:///var/run/docker.sock exec -i lamp-mariadb-1 mysql -u root -ppassword myapp < schema.sql
+   ```
 
 ## Troubleshooting
 
-### Port Conflicts
+### Container Not Found
 
-If ports 80, 443, 3306, or 8025 are already in use:
-1. Edit `docker-compose.yml`
-2. Change port mappings
-3. Run `bin/rebuild`
+If you get "No such container" error:
+1. List running containers to verify names:
+   ```bash
+   docker -H unix:///var/run/docker.sock ps
+   ```
+2. Check if the container is running:
+   ```bash
+   docker -H unix:///var/run/docker.sock ps -a
+   ```
 
-### Permission Issues
+### Permission Denied
 
-If you encounter file permission errors:
-```bash
-bin/terminal php
-chown -R www-data:www-data /var/www/html
-```
+If you get permission errors:
+- Ensure the Docker socket is mounted and accessible
+- Check socket permissions: `ls -la /var/run/docker.sock`
 
-### Database Connection Fails
+### Command Not Found in Container
 
-Ensure you're using `mariadb` as the host, not `localhost` or `127.0.0.1`.
+If a command isn't available in the container:
+- Verify you're using the correct container (php vs node vs mariadb)
+- Check if the tool is installed in that container
+- You may need to install it first
 
-### SSL Certificate Warnings
+## Best Practices
 
-Self-signed certificates trigger browser warnings. This is normal for development. Click "Advanced" and proceed.
+1. **Always use the Docker socket** - Never try to run composer, npm, or mysql directly
+2. **Verify container names** - Use `docker ps` if unsure about container names
+3. **Use appropriate containers** - PHP commands in php container, Node in node container, etc.
+4. **Handle paths carefully** - Remember that container paths may differ from your local paths
+5. **Use -i flag for input** - When piping data into containers (like SQL imports)
+6. **Use -it flags for interactive** - When you need an interactive shell or prompt
 
-## Technical Details
+## Quick Reference
 
-### PHP Modules
+| Task | Container | Command |
+|------|-----------|----------|
+| Install PHP packages | php | `docker -H unix:///var/run/docker.sock exec lamp-php-1 composer install` |
+| Install Node packages | node | `docker -H unix:///var/run/docker.sock exec lamp-node-1 npm install` |
+| Run MySQL query | mariadb | `docker -H unix:///var/run/docker.sock exec lamp-mariadb-1 mysql -u root -ppassword -e "QUERY"` |
+| PHP shell | php | `docker -H unix:///var/run/docker.sock exec -it lamp-php-1 bash` |
+| Node shell | node | `docker -H unix:///var/run/docker.sock exec -it lamp-node-1 bash` |
+| MySQL shell | mariadb | `docker -H unix:///var/run/docker.sock exec -it lamp-mariadb-1 mysql -u root -ppassword` |
 
-See the complete list of installed PHP modules:
-<https://github.com/delboy1978uk/dockerhub/blob/master/php83/Dockerfile>
-
-### Service Architecture
-
-The stack uses Docker Compose to orchestrate multiple containers:
-- PHP/Apache container (web server)
-- MariaDB container (database)
-- MailHog container (email testing)
-- Node.js container (frontend tooling)
-
-Containers communicate via Docker networking.
-
-## License
-
-MIT License - See LICENSE.md in the repository
-
-## Repository
-
-<https://github.com/boneframework/lamp>
