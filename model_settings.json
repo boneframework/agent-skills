@@ -72,25 +72,27 @@
         }
     },
     {
-    "name": "claude-sonnet-4-5",
-    "provider": "anthropic",
-    "base_url": "",
-    "context_length": 200000,
-    "input_rate_limit": 50000,
-    "output_rate_limit": 8000,
-    "additional_parameters": {
-        "temperature": 0
+        "name": "claude-sonnet-4-5",
+        "provider": "anthropic",
+        "base_url": "",
+        "context_length": 200000,
+        "input_rate_limit": 50000,
+        "output_rate_limit": 8000,
+        "additional_parameters": {
+            "temperature": 0
+        }
     },
     {
-    "name": "gemini-3-pro-preview",
-    "provider": "google",
-    "base_url": "",
-    "context_length": 1048576,
-    "input_rate_limit": 250000,
-    "output_rate_limit": 65536,
-    "additional_parameters": {
-        "temperature": 1,
-        "thinking_level": "high"
+        "name": "gemini-3-pro-preview",
+        "provider": "google",
+        "base_url": "",
+        "context_length": 1048576,
+        "input_rate_limit": 250000,
+        "output_rate_limit": 65536,
+        "additional_parameters": {
+            "temperature": 1,
+            "thinking_level": "high"
+        }
     }
 }
 ]
