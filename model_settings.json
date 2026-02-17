@@ -76,7 +76,7 @@
         "provider": "anthropic",
         "base_url": "",
         "context_length": 200000,
-        "input_rate_limit": 50000,
+        "input_rate_limit": 30000,
         "output_rate_limit": 8000,
         "additional_parameters": {
             "temperature": 0
