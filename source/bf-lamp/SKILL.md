@@ -63,6 +63,7 @@ For example:
 ## Service-Specific Commands
 
 ### PHP Container (composer, php, bone)
+The PHP container shares the same volumes as the AgentZero container, so the paths to the project files are the same.
 **Running bone:**
 ```bash
 docker -H unix:///var/run/docker.sock exec lamp-php-1 bone --help
